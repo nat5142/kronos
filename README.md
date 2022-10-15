@@ -22,7 +22,7 @@ Kronos makes dateranges easier.
 
 
 * GitHub repo: <https://github.com/nat5142/kronos.git>
-* Documentation: <https://kronos.readthedocs.io>
+* Documentation: <https://nat5142-kronos.readthedocs.io/>
 * Free software: BSD
 
 
