@@ -1,15 +1,15 @@
 
 [tool.poetry]
-name = "kronos"
-version = "0.1.0"
-description = "Kronos makes dateranges easier."
+name = "kronos-daterange"
+version = "0.0.1"
+description = "Kronos makes date ranges easier."
 authors = ["Nick Tulli <ntulli.dev@gmail.com>"]
 
 readme = "README.md"
 homepage = "https://github.com/nat5142/kronos"
 repository = "https://github.com/nat5142/kronos"
-documentation = "https://kronos.readthedocs.io"
-keywords = ["kronos"]
+documentation = "https://nat5142-kronos.readthedocs.io/"
+keywords = ["kronos", "kronos-daterange", "daterange"]
 classifiers=[
     "Development Status :: 2 - Pre-Alpha",
     "Intended Audience :: Developers",
@@ -29,10 +29,9 @@ classifiers=[
 "Bug Tracker" = "https://github.com/nat5142/kronos/issues"
 
 
-
-
 [tool.poetry.dependencies]
 python = "<3.11,>=3.7"
+pytz = "^2022.1"
 
 
 [tool.poetry.dev-dependencies]
