@@ -20,7 +20,7 @@ def version() -> Generator[str, None, None]:
 
 def test_version(version: str) -> None:
     """Sample pytest test function with the pytest fixture as an argument."""
-    assert version == "0.0.2"
+    assert version == "0.0.3"
 
 
 def test_day_range():
@@ -32,3 +32,24 @@ def test_day_range():
     day_range = [x for x in kronos.day_range()]
 
     assert len(day_range) == 6
+
+
+def test_set_start_date():
+    kronos = Kronos()
+    kronos.set_start_time(hour=8, minute=30, second=15)
+
+    assert kronos.format_start('%H:%M:%S') == '08:30:15'
+
+def test_set_end_date():
+    kronos = Kronos()
+    kronos.set_end_time(hour=8, minute=30, second=15)
+
+    assert kronos.format_end('%H:%M:%S') == '08:30:15'
+
+def test_start_timestamp():
+    kronos = Kronos()
+    assert type(kronos.start_ts) == float
+
+def test_end_timestamp():
+    kronos = Kronos()
+    assert type(kronos.end_ts) == float

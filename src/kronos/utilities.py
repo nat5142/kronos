@@ -1,7 +1,7 @@
 import os
 import pytz
 from typing import Union
-from datetime import tzinfo
+from datetime import datetime, tzinfo
 
 
 def get_default_daterange():
@@ -41,3 +41,19 @@ def make_timezone(timezone: Union[tzinfo, str]) -> tzinfo:
         tz = pytz.timezone(timezone)
 
     return tz
+
+
+def convert_timezone(date_obj: datetime, in_tz: Union[tzinfo, str], out_tz: Union[tzinfo, str]) -> datetime:
+        """ Convert a date object from one timezone to another (changes time components --> see `change_timezone` if you want to)
+
+        :param date_obj: a datetime object to convert
+        :type date_obj: datetime
+        :param in_tz: timezone to convert from
+        :type in_tz: Union[tzinfo, str]
+        :param out_tz: timezone to convert to
+        :type out_tz: Union[tzinfo, str]
+        :rtype: datetime
+        """
+        in_timezone = make_timezone(in_tz)
+        out_timezone = make_timezone(out_tz)
+        return in_timezone.localize(date_obj).astimezone(tz=out_timezone)

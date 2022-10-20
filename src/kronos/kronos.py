@@ -9,7 +9,7 @@ from dateutil.rrule import rrule, DAILY
 from datetime import datetime, timedelta, tzinfo
 from dateutil.relativedelta import relativedelta, SU, MO, TU, WE, TH, FR, SA
 
-from src.kronos.utilities import get_default_daterange, make_timezone
+from src.kronos.utilities import get_default_daterange, make_timezone, convert_timezone
 
 
 ISO_FMT = '%Y-%m-%d %H:%M:%S'
@@ -93,7 +93,33 @@ class Kronos(object):
     def yesterday(self):
         return (self.current_date - timedelta(days=1)).strftime(self.date_format)
 
-    def change_timezone(self, tz: Union[tzinfo, str] = None) -> Kronos:
+    @property
+    def start_ts(self) -> float:
+        """ Get the unix timestamp of the start date
+
+        :return: start_date represented as seconds since the epoch
+        :rtype: float
+        """
+        return self._start_date.timestamp()
+    
+    @property
+    def end_ts(self) -> float:
+        """ Get the unix timestamp of the end date
+
+        :return: end_date represented as seconds since the epoch
+        :rtype: float
+        """
+        return self._end_date.timestamp()
+
+    def set_start_time(self, hour: int = None, minute: int = None, second: int = None, microsecond: int = None):
+        kwargs = {'hour': hour, 'minute': minute, 'second': second, 'microsecond': microsecond}
+        self._start_date = self._start_date.replace(**{k: v for k, v in kwargs.items() if v})
+    
+    def set_end_time(self, hour: int = None, minute: int = None, second: int = None, microsecond: int = None):
+        kwargs = {'hour': hour, 'minute': minute, 'second': second, 'microsecond': microsecond}
+        self._end_date = self._end_date.replace(**{k: v for k, v in kwargs.items() if v})
+
+    def change_timezone(self, tz: Union[tzinfo, str]) -> Kronos:
         """ Switch the timezone of the Kronos object without adjusting the time.
 
         :param tz: either a pre-built tzinfo object or a timezone name as string
@@ -105,10 +131,36 @@ class Kronos(object):
         self._end_date = self._end_date.replace(tzinfo=timezone)
         self.tz = timezone
         return self
+    
+    def parse_and_localize(self, dt_str: str, date_format: str, in_tz: Union[tzinfo, str] = 'UTC', out_tz: Union[tzinfo, str] = DEFAULT_TZ) -> datetime:
+        """ Create a datetime object from input, set its timezone, and convert it to a new object.
+
+        :param dt_str: a string-represented date
+        :type dt_str: str
+        :param date_format: the datetime format of `dt_str`
+        :type date_format: str
+        :param in_tz: input timezone, defaults to 'UTC'
+        :type in_tz: Union[tzinfo, str], optional
+        :param out_tz: output timezone, defaults to DEFAULT_TZ
+        :type out_tz: Union[tzinfo, str], optional
+        :return: original date string as a datetime object in the new timezone, `out_tz`.
+        :rtype: datetime
+        """
+        return convert_timezone(datetime.strptime(dt_str, date_format), in_tz=in_tz, out_tz=out_tz)
 
     @staticmethod
-    def convert_date(dt_str, in_format, out_format) -> str:
-        """ Convert a date in format `in_format` and return string in format `out_format`. """
+    def convert_date(dt_str: str, in_format: str, out_format: str) -> str:
+        """ Convert a date in format `in_format` and return string in format `out_format`.
+
+        :param dt_str: a string-representation of a datetime
+        :type dt_str: str
+        :param in_format: the input dt_str format
+        :type in_format: str
+        :param out_format: the desired output date format
+        :type out_format: str
+        :return: string-represented date in specified format
+        :rtype: str
+        """
         parsed_date = datetime.strptime(dt_str, in_format)
         return parsed_date.strftime(out_format)
 
@@ -186,6 +238,20 @@ class Kronos(object):
         :return: timezone-aware datetime object
         """
         return self._end_date.astimezone(tz=pytz.timezone(target_tz))
+    
+    def shift_range(self, **kwargs) -> Kronos:
+        """ Shift a Kronos daterange back with relative kwargs. Basically this is a convenience 
+        exposure of the timedelta functionality.
+
+        NOTE: Users should avoid using time components to adjust here. Prefer to use the `set_start_time` and `set_end_time` methods.
+
+        :param kwargs: key-value pairs to be deconstructed into timedelta(...) kwargs.
+        :return: a timedelta-shifted Kronos object.
+        :rtype: Kronos
+        """
+        new_start = (self._start_date + timedelta(**kwargs)).strftime(self.date_format)
+        new_end = (self._end_date + timedelta(**kwargs)).strftime(self.date_format)
+        return Kronos(new_start, new_end)
 
     def __repr__(self):
         return "Kronos(start_date='{}', end_date='{}', date_format='{}', timezone='{}')".format(
