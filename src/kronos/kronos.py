@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import os
 from time import time
-import pytz
 from typing import Union, List
 from dateutil.rrule import rrule, DAILY
 from datetime import datetime, timedelta, tzinfo
@@ -228,7 +227,7 @@ class Kronos(object):
         :type target_tz: str, optional
         :return: timezone-aware datetime object
         """
-        return self._start_date.astimezone(tz=pytz.timezone(target_tz))
+        return self._start_date.astimezone(tz=make_timezone(target_tz))
 
     def shift_end_tz(self, target_tz='UTC') -> datetime:
         """ Shift the end_date timezone from self.tz to a timezone specified by `target_tz`
@@ -237,7 +236,7 @@ class Kronos(object):
         :type target_tz: str, optional
         :return: timezone-aware datetime object
         """
-        return self._end_date.astimezone(tz=pytz.timezone(target_tz))
+        return self._end_date.astimezone(tz=make_timezone(target_tz))
     
     def shift_range(self, **kwargs) -> Kronos:
         """ Shift a Kronos daterange back with relative kwargs. Basically this is a convenience 
