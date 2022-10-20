@@ -6,8 +6,8 @@ import pytest
 import pytz
 from datetime import datetime, timedelta
 
-import kronos as k
-from kronos import Kronos, DEFAULT_TZ, DEFAULT_FORMAT
+import src.kronos as k
+from src.kronos.kronos import Kronos, DEFAULT_TZ, DEFAULT_FORMAT
 
 tz = pytz.timezone(DEFAULT_TZ)
 
@@ -20,7 +20,7 @@ def version() -> Generator[str, None, None]:
 
 def test_version(version: str) -> None:
     """Sample pytest test function with the pytest fixture as an argument."""
-    assert version == "0.0.3"
+    assert version == "0.0.4"
 
 
 def test_day_range():

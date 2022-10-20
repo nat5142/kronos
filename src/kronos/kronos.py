@@ -9,7 +9,7 @@ from dateutil.rrule import rrule, DAILY
 from datetime import datetime, timedelta, tzinfo
 from dateutil.relativedelta import relativedelta, SU, MO, TU, WE, TH, FR, SA
 
-from src.kronos.utilities import get_default_daterange, make_timezone, convert_timezone
+from .utilities import get_default_daterange, make_timezone, convert_timezone
 
 
 ISO_FMT = '%Y-%m-%d %H:%M:%S'

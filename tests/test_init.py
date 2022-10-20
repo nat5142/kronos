@@ -2,8 +2,7 @@ from tracemalloc import start
 import pytz
 from datetime import datetime, timedelta
 
-from src.kronos import Kronos
-from src.kronos.kronos import DEFAULT_TZ, DEFAULT_FORMAT, ISO_FMT
+from src.kronos.kronos import Kronos, DEFAULT_TZ, DEFAULT_FORMAT, ISO_FMT
 
 tz = pytz.timezone(DEFAULT_TZ)
 
