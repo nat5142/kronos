@@ -28,11 +28,10 @@ _VALID_DATERANGE_NAMES = [
 ]
 
 
-def make_timezone(timezone: Union[pytz.timezone, str]) -> pytz.timezone:
-    """ Handle timezones given both as strings or as pre-made pytz.timezone objects.
+def make_timezone(timezone: Union[tzinfo, str]) -> tzinfo:
+    """ Handle timezones given both as strings or as pre-made datetime.tzinfo objects.
 
     :param tz: a timezone, represented as a string or as as a pytz.timezone object.
-    :type tz: _type_
     """
     if isinstance(timezone, tzinfo):
         # check if user already created the timezone object instead of passing a string, and handle it

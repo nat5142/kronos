@@ -44,33 +44,33 @@ class Kronos(object):
         :type date_format: str
         """
 
-        self.tz = make_timezone(timezone=timezone)
+        self.tz: tzinfo = make_timezone(timezone=timezone)
 
         self.date_format = date_format
 
         if end_date:
-            ed = datetime.strptime(end_date, date_format)
+            ed = self.tz.localize(datetime.strptime(end_date, date_format))
         else:
             # default to today
-            ed = datetime.now()
+            ed = datetime.now(tz=self.tz)
 
         if start_date:
-            sd = datetime.strptime(start_date, date_format)
+            sd = self.tz.localize(datetime.strptime(start_date, date_format))
         else:
             default_daterange = get_default_daterange()
             # TODO: implement additonal default daterange options
             if default_daterange in ['LATEST', 'YESTERDAY_TODAY']:
-                sd = datetime.now() - timedelta(days=1)
+                sd = datetime.now(tz=self.tz) - timedelta(days=1)
             elif default_daterange.startswith('LAST_WEEK__'):
                 day_abbr = default_daterange.split('__')[-1]  # get start day from value
-                sd = datetime.now() - relativedelta(weekday=REL_RANGE_MAP[day_abbr](-1))
+                sd = datetime.now(tz=self.tz) - relativedelta(weekday=REL_RANGE_MAP[day_abbr](-1))
         
         if sd > ed:
             raise ValueError('`start_date` cannot come after `end_date`.')
         
         # set time to beginning/end of day
-        self._start_date: datetime = self.tz.localize(sd.replace(hour=0, minute=0, second=0, microsecond=0))
-        self._end_date: datetime = self.tz.localize(ed.replace(hour=23, minute=59, second=59, microsecond=999999))
+        self._start_date: datetime = sd.replace(hour=0, minute=0, second=0, microsecond=0)
+        self._end_date: datetime = ed.replace(hour=23, minute=59, second=59, microsecond=999999)
 
     @property
     def start_date(self) -> str:
@@ -93,6 +93,19 @@ class Kronos(object):
     def yesterday(self):
         return (self.current_date - timedelta(days=1)).strftime(self.date_format)
 
+    def change_timezone(self, tz: Union[tzinfo, str] = None) -> Kronos:
+        """ Switch the timezone of the Kronos object without adjusting the time.
+
+        :param tz: either a pre-built tzinfo object or a timezone name as string
+        :type tz: Union[tzinfo, str]
+        :returns: self
+        """
+        timezone = make_timezone(tz)
+        self._start_date = self._start_date.replace(tzinfo=timezone)
+        self._end_date = self._end_date.replace(tzinfo=timezone)
+        self.tz = timezone
+        return self
+
     @staticmethod
     def convert_date(dt_str, in_format, out_format) -> str:
         """ Convert a date in format `in_format` and return string in format `out_format`. """
@@ -109,7 +122,7 @@ class Kronos(object):
         for day in rrule(DAILY, dtstart=self._start_date, until=self._end_date):
             yield Kronos(day.strftime(self.date_format), day.strftime(self.date_format), date_format=self.date_format, timezone=self.tz)
 
-    def now(self, timezone: Union[pytz.timezone, str]=None) -> datetime:
+    def now(self, timezone: Union[tzinfo, str] = None) -> datetime:
         """ Convenience func to return current local time specified by `timezone`. 
         
         :param timezone: (optional) timezone. returned as `self.tz` if not provided.

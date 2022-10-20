@@ -1,7 +1,7 @@
 
 [tool.poetry]
 name = "kronos-daterange"
-version = "0.0.1"
+version = "0.0.2"
 description = "Kronos makes date ranges easier."
 authors = ["Nick Tulli <ntulli.dev@gmail.com>"]
 
@@ -24,7 +24,7 @@ classifiers=[
     "Programming Language :: Python :: 3.10",
 ]
 packages = [
-  { include = "src"}
+  { include = "kronos", from = "src" },
 ]
 
 
