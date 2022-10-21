@@ -12,7 +12,7 @@ from .utilities import get_default_daterange, make_timezone, convert_timezone
 
 
 ISO_FMT = '%Y-%m-%d %H:%M:%S'
-DEFAULT_TZ = os.environ.get('KRONOS_TIMEZONE', 'UTC')  # Defaults to EST if not set
+DEFAULT_TZ = os.environ.get('KRONOS_TIMEZONE', 'UTC')  # Defaults to UTC if not set
 DEFAULT_FORMAT = os.environ.get('KRONOS_FORMAT', '%Y-%m-%d')
 
 REL_RANGE_MAP = {
@@ -46,6 +46,8 @@ class Kronos(object):
         self.tz: tzinfo = make_timezone(timezone=timezone)
 
         self.date_format = date_format
+
+
 
         if end_date:
             ed = self.tz.localize(datetime.strptime(end_date, date_format))

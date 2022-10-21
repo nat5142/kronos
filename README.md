@@ -4,12 +4,12 @@
 
 <div align="center">
 
-[![PyPI - Version](https://img.shields.io/pypi/v/kronos.svg)](https://pypi.python.org/pypi/kronos)
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/kronos.svg)](https://pypi.python.org/pypi/kronos)
+[![PyPI - Version](https://img.shields.io/pypi/v/kronos.svg)](https://pypi.python.org/pypi/kronos-daterange)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/kronos.svg)](https://pypi.python.org/pypi/kronos-daterange)
 [![Tests](https://github.com/nat5142/kronos/workflows/tests/badge.svg)](https://github.com/nat5142/kronos/actions?workflow=tests)
 [![Codecov](https://codecov.io/gh/nat5142/kronos/branch/main/graph/badge.svg)](https://codecov.io/gh/nat5142/kronos)
 [![Read the Docs](https://readthedocs.org/projects/kronos/badge/)](https://kronos.readthedocs.io/)
-[![PyPI - License](https://img.shields.io/pypi/l/kronos.svg)](https://pypi.python.org/pypi/kronos)
+[![PyPI - License](https://img.shields.io/pypi/l/kronos.svg)](https://pypi.python.org/pypi/kronos-daterange)
 
 [![Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
@@ -26,9 +26,84 @@ Kronos makes dateranges easier.
 * Free software: BSD
 
 
-## Features
+## Feature Demo
 
-* TODO
+```
+# import
+>>> from kronos import Kronos
+
+# init --> defaults to range of <yesterday, today>
+>>> kronos = Kronos()
+
+# manually set dates
+>>> kronos = Kronos(start_date='2022-10-01', end_date='2022-10-31')
+
+# set timezone
+>>> kronos = Kronos(timezone='America/New_York') 
+
+# specify date format
+>>> kronos = Kronos(start_date='10/20/2022', end_date='10/31/2022', date_format='%m/%d/%Y')
+
+# access start, end dates
+>>> kronos = Kronos()
+>>> kronos.start_date
+2022-10-19
+>>> kronos.end_date
+2022-10-20
+
+# `date_format` carries over to properties:
+>>> kronos = Kronos(date_format='%m/%d/%Y')
+>>> kronos.start_date
+10/19/2022
+>>> kronos.end_date
+10/20/2022
+
+# get the current date in your timezone
+>>> kronos = Kronos('America/Los_Angeles')
+>>> kronos.current_date
+2022-10-20
+
+# change your object's timezone without altering the time
+>>> kronos = Kronos(timezone='UTC')
+>>> kronos.change_timezone(tz='America/New_York')
+
+# shift your daterange
+>>> kronos = Kronos()
+>>> kronos.shift_range(weeks=-1)
+Kronos(start_date='2022-10-12', end_date='2022-10-13', ... )
+```
+
+## Defaults/Environment Variables
+
+Kronos is prepared to accept the following environment variables:
+
+- `KRONOS_TIMEZONE`, which defaults to UTC if not set. Can often be overridden at method-levels for one-off timezone conversions.
+- `KRONOS_FORMAT`, the strptime date format string for your dates.
+- `KRONOS_DATERANGE` (see below)
+
+Note that both `KRONOS_TIMEZONE` and `KRONOS_FORMAT` can be set during init as `timezone=` and `date_format=` arguments, respectively.
+
+### `KRONOS_TIMEZONE`:
+
+Can be any valid timezone name (find them at `pytz.all_timezones`)
+
+### `KRONOS_DATERANGE`:
+
+List of accepted values:
+
+- `LATEST`: start/end dates of yesterady/today
+- `YESTERDAY_TODAY`: same as `LATEST`
+- `LAST_MONTH`: previous calendar month
+- `LAST_7_DAYS`: relative range where end_date is today, start date is set 7 days behind.
+- `LAST_30_DAYS`: relative range where end_date is today, start date is set 30 days behind.
+- `LAST_WEEK__SUN`: week-to-date starting on previous Sunday
+- `LAST_WEEK__MON`: week-to-date starting on previous Monday
+- `LAST_WEEK__TUES`: week-to-date starting on previous Tuesday
+- `LAST_WEEK__WED`: week-to-date starting on previous Wednesday
+- `LAST_WEEK__THURS`: week-to-date starting on previous Thursday
+- `LAST_WEEK__FRI`: week-to-date starting on previous Friday
+- `LAST_WEEK__SAT`: week-to-date starting on previous Saturday
+
 
 ## Quickstart
 
