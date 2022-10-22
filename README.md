@@ -44,49 +44,49 @@ kronos = Kronos(start_date='2022-01-01', end_date='2022-01-31')
 
 ## Feature Demo
 
-```
+```python
 # import
->>> from kronos import Kronos
+from kronos import Kronos
 
-# init --> defaults to range of <yesterday, today>
->>> kronos = Kronos()
+# init --> defaults to range of <yesterday, today> unless otherwise specified by `KRONOS_DATERANGE` environment variable
+kronos = Kronos()
 
 # manually set dates
->>> kronos = Kronos(start_date='2022-10-01', end_date='2022-10-31')
+kronos = Kronos(start_date='2022-10-17', end_date='2022-10-23')
 
 # set timezone
->>> kronos = Kronos(timezone='America/New_York') 
+kronos = Kronos(timezone='America/New_York') 
 
 # specify date format
->>> kronos = Kronos(start_date='10/20/2022', end_date='10/31/2022', date_format='%m/%d/%Y')
+kronos = Kronos(start_date='10/20/2022', end_date='10/31/2022', date_format='%m/%d/%Y')
 
 # access start, end dates
->>> kronos = Kronos()
->>> kronos.start_date
-2022-10-19
->>> kronos.end_date
-2022-10-20
+kronos = Kronos()
+kronos.start_date
+# 2022-10-19
+kronos.end_date
+# 2022-10-20
 
 # `date_format` carries over to properties:
->>> kronos = Kronos(date_format='%m/%d/%Y')
->>> kronos.start_date
-10/19/2022
->>> kronos.end_date
-10/20/2022
+kronos = Kronos(date_format='%m/%d/%Y')
+kronos.start_date
+# 10/19/2022
+kronos.end_date
+# 10/20/2022
 
-# get the current date in your timezone
->>> kronos = Kronos('America/Los_Angeles')
->>> kronos.current_date
-2022-10-20
+# get the current date in specified timezone
+kronos = Kronos('America/Los_Angeles')
+kronos.current_date
+# 2022-10-20
 
-# change your object's timezone without altering the time
->>> kronos = Kronos(timezone='UTC')
->>> kronos.change_timezone(tz='America/New_York')
+# overwrite your object's timezone without altering the time
+kronos = Kronos(timezone='UTC')
+kronos.change_timezone(tz='America/New_York')
 
-# shift your daterange
->>> kronos = Kronos()
->>> kronos.shift_range(weeks=-1)
-Kronos(start_date='2022-10-12', end_date='2022-10-13', ... )
+# relative shift forward/back
+kronos = Kronos()
+kronos.shift_range(weeks=-1)
+# Kronos(start_date='2022-10-12', end_date='2022-10-13', ... )
 ```
 
 ## Defaults/Environment Variables
