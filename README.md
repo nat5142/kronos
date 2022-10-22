@@ -26,6 +26,22 @@ Kronos makes dateranges easier.
 * Free software: BSD
 
 
+## Quickstart
+
+Install from pip:
+
+```shell
+pip install kronos-daterange
+```
+
+Import & basic init:
+```python
+from kronos import Kronos
+
+kronos = Kronos(start_date='2022-01-01', end_date='2022-01-31')
+```
+
+
 ## Feature Demo
 
 ```
@@ -94,20 +110,9 @@ List of accepted values:
 - `LATEST`: start/end dates of yesterady/today
 - `YESTERDAY_TODAY`: same as `LATEST`
 - `LAST_MONTH`: previous calendar month
-- `LAST_7_DAYS`: relative range where end_date is today, start date is set 7 days behind.
-- `LAST_30_DAYS`: relative range where end_date is today, start date is set 30 days behind.
-- `LAST_WEEK__SUN`: week-to-date starting on previous Sunday
-- `LAST_WEEK__MON`: week-to-date starting on previous Monday
-- `LAST_WEEK__TUES`: week-to-date starting on previous Tuesday
-- `LAST_WEEK__WED`: week-to-date starting on previous Wednesday
-- `LAST_WEEK__THURS`: week-to-date starting on previous Thursday
-- `LAST_WEEK__FRI`: week-to-date starting on previous Friday
-- `LAST_WEEK__SAT`: week-to-date starting on previous Saturday
-
-
-## Quickstart
-
-TODO
+- `MTD`: month-to-date
+- `LAST_{X}_DAYS`: relative range where end_date is today, start date is set X days behind.
+- `LAST_WEEK__{X}`: week-to-date starting on previous day of week specified by X. Valid values for X: `SUN, MON, TUES, WED, THURS, FRI, SAT`
 
 ## Credits
 

@@ -47,29 +47,28 @@ class Kronos(object):
 
         self.date_format = date_format
 
-
-
-        if end_date:
-            ed = self.tz.localize(datetime.strptime(end_date, date_format))
+        if not start_date and not end_date:
+            # No values were given
+            try:
+                sd, ed = get_default_daterange(tz=self.tz)
+            except ValueError as exc:
+                raise
         else:
-            # default to today
-            ed = datetime.now(tz=self.tz)
-
-        if start_date:
-            sd = self.tz.localize(datetime.strptime(start_date, date_format))
-        else:
-            default_daterange = get_default_daterange()
-            # TODO: implement additonal default daterange options
-            if default_daterange in ['LATEST', 'YESTERDAY_TODAY']:
+            if start_date:
+                sd = self.tz.localize(datetime.strptime(start_date, date_format))
+            else:
                 sd = datetime.now(tz=self.tz) - timedelta(days=1)
-            elif default_daterange.startswith('LAST_WEEK__'):
-                day_abbr = default_daterange.split('__')[-1]  # get start day from value
-                sd = datetime.now(tz=self.tz) - relativedelta(weekday=REL_RANGE_MAP[day_abbr](-1))
+
+            if end_date:
+                ed = self.tz.localize(datetime.strptime(end_date, date_format))
+            else:
+                # default to today
+                ed = datetime.now(tz=self.tz)
         
         if sd > ed:
             raise ValueError('`start_date` cannot come after `end_date`.')
         
-        # set time to beginning/end of day
+        # set time to beginning/end of range
         self._start_date: datetime = sd.replace(hour=0, minute=0, second=0, microsecond=0)
         self._end_date: datetime = ed.replace(hour=23, minute=59, second=59, microsecond=999999)
 
@@ -80,6 +79,11 @@ class Kronos(object):
     @property
     def end_date(self) -> str:
         return self._end_date.strftime(self.date_format)
+    
+    @property
+    def timezone(self) -> str:
+        """ Timezone name set at self.tz """
+        return self.tz.zone
 
     @property
     def current_date(self) -> datetime:

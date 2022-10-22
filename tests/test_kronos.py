@@ -3,6 +3,9 @@ from typing import Generator
 
 import pytest
 
+import os
+os.environ['KRONOS_DATERANGE'] = 'LATEST'
+
 import pytz
 from datetime import datetime, timedelta
 
