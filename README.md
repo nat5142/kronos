@@ -112,7 +112,7 @@ List of accepted values:
 - `LAST_MONTH`: previous calendar month
 - `MTD`: month-to-date
 - `LAST_{X}_DAYS`: relative range where end_date is today, start date is set X days behind.
-- `LAST_WEEK__{X}`: week-to-date starting on previous day of week specified by X. Valid values for X: `SUN, MON, TUES, WED, THURS, FRI, SAT`
+- `THIS_WEEK__{X}`: week-to-date starting on previous day of week specified by X. Valid values for X: `SUN, MON, TUES, WED, THURS, FRI, SAT`
 
 ## Credits
 

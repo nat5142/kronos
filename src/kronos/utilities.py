@@ -2,7 +2,7 @@ import os
 import re
 import pytz
 from typing import Union, Tuple
-from datetime import datetime, timedelta, tzinfo
+from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta, SU, MO, TU, WE, TH, FR, SA
 
 REL_RANGE_MAP = {
@@ -18,11 +18,11 @@ REL_RANGE_MAP = {
 _VALID_RELATIVE_DAY_ABBRS = ['SUN', 'MON', 'TUES', 'WED', 'THURS', 'FRI', 'SAT']
 
 
-def get_default_daterange(tz: Union[tzinfo, str]) -> Tuple[datetime, datetime]:
+def get_default_daterange(tz: Union[pytz.BaseTzInfo, str]) -> Tuple[datetime, datetime]:
     """ Get the default (fallback) timezone used by Kronos.
 
     :param tz: either a pre-built timzeone or a valid pytz timezone name
-    :type tz: Union[tzinfo, str]
+    :type tz: Union[pytz.BaseTzInfo, str]
     :raises ValueError: if an invalid `KRONOS_DATERANGE` is specified.
     :return: (start_dt, end_dt) for Kronos initialization.
     :rtype: Tuple[datetime, datetime]
@@ -43,12 +43,12 @@ def get_default_daterange(tz: Union[tzinfo, str]) -> Tuple[datetime, datetime]:
     return start_dt, end_dt
 
 
-def make_timezone(timezone: Union[tzinfo, str]) -> tzinfo:
-    """ Handle timezones given both as strings or as pre-made datetime.tzinfo objects.
+def make_timezone(timezone: Union[pytz.BaseTzInfo, str]) -> pytz.BaseTzInfo:
+    """ Handle timezones given both as strings or as pre-made pytz.BaseTzInfo objects.
 
     :param tz: a timezone, represented as a string or as as a pytz.timezone object.
     """
-    if isinstance(timezone, tzinfo):
+    if isinstance(timezone, pytz.BaseTzInfo):
         # check if user already created the timezone object instead of passing a string, and handle it
         tz = timezone
     else:
@@ -58,15 +58,15 @@ def make_timezone(timezone: Union[tzinfo, str]) -> tzinfo:
     return tz
 
 
-def convert_timezone(date_obj: datetime, in_tz: Union[tzinfo, str], out_tz: Union[tzinfo, str]) -> datetime:
+def convert_timezone(date_obj: datetime, in_tz: Union[pytz.BaseTzInfo, str], out_tz: Union[pytz.BaseTzInfo, str]) -> datetime:
         """ Convert a date object from one timezone to another (changes time components --> see `change_timezone` if you want to)
 
         :param date_obj: a datetime object to convert
         :type date_obj: datetime
         :param in_tz: timezone to convert from
-        :type in_tz: Union[tzinfo, str]
+        :type in_tz: Union[pytz.BaseTzInfo, str]
         :param out_tz: timezone to convert to
-        :type out_tz: Union[tzinfo, str]
+        :type out_tz: Union[pytz.BaseTzInfo, str]
         :rtype: datetime
         """
         in_timezone = make_timezone(in_tz)
@@ -74,13 +74,13 @@ def convert_timezone(date_obj: datetime, in_tz: Union[tzinfo, str], out_tz: Unio
         return in_timezone.localize(date_obj).astimezone(tz=out_timezone)
 
 
-def latest(match: re.Match, tz: Union[tzinfo, str]) -> Tuple[datetime, datetime]:
+def latest(match: re.Match, tz: Union[pytz.BaseTzInfo, str]) -> Tuple[datetime, datetime]:
     """ Get default daterange of (yesterday, today)
 
     :param match: regex Match object
     :type match: re.Match
     :param tz: either a pre-built timzeone or a valid pytz timezone name
-    :type tz: Union[tzinfo, str]
+    :type tz: Union[pytz.BaseTzInfo, str]
     :return: (yesterday, today) as datetime objects
     :rtype: Tuple[datetime, datetime]
     """
@@ -88,13 +88,13 @@ def latest(match: re.Match, tz: Union[tzinfo, str]) -> Tuple[datetime, datetime]
     now = datetime.now(tz=timezone)
     return (now - relativedelta(days=1)), (now)
 
-def last_month(match: re.Match, tz: Union[tzinfo, str]) -> Tuple[datetime, datetime]:
+def last_month(match: re.Match, tz: Union[pytz.BaseTzInfo, str]) -> Tuple[datetime, datetime]:
     """ Get daterange containing last month
 
     :param match: regex Match object
     :type match: re.Match
     :param tz: either a pre-built timzeone or a valid pytz timezone name
-    :type tz: Union[tzinfo, str]
+    :type tz: Union[pytz.BaseTzInfo, str]
     :return: last month (start, end) as datetime objects
     :rtype: Tuple[datetime, datetime]
     """
@@ -105,13 +105,13 @@ def last_month(match: re.Match, tz: Union[tzinfo, str]) -> Tuple[datetime, datet
     return start_dt, end_dt
 
 
-def month_to_date(match: re.Match, tz: Union[tzinfo, str]) -> Tuple[datetime, datetime]:
+def month_to_date(match: re.Match, tz: Union[pytz.BaseTzInfo, str]) -> Tuple[datetime, datetime]:
     """ Get daterange for MTD.
 
     :param match: regex Match object
     :type match: re.Match
     :param tz: either a pre-built timzeone or a valid pytz timezone name
-    :type tz: Union[tzinfo, str]
+    :type tz: Union[pytz.BaseTzInfo, str]
     :return: MTD (1st, today) as datetime objects
     :rtype: Tuple[datetime, datetime]
     """
@@ -121,13 +121,13 @@ def month_to_date(match: re.Match, tz: Union[tzinfo, str]) -> Tuple[datetime, da
     return start_dt, now
 
 
-def last_x_days(match: re.Match, tz: Union[tzinfo, str]) -> Tuple[datetime, datetime]:
+def last_x_days(match: re.Match, tz: Union[pytz.BaseTzInfo, str]) -> Tuple[datetime, datetime]:
     """ Get date boundaries for `x` days ago until today
 
     :param match: regex Match object
     :type match: re.Match
     :param tz: either a pre-built timzeone or a valid pytz timezone name
-    :type tz: Union[tzinfo, str]
+    :type tz: Union[pytz.BaseTzInfo, str]
     :return: (x days ago, today) as datetime objects
     :rtype: Tuple[datetime, datetime]
     """
@@ -138,13 +138,13 @@ def last_x_days(match: re.Match, tz: Union[tzinfo, str]) -> Tuple[datetime, date
     return start_dt, now
 
 
-def week_to_date_starting_on(match: re.Match, tz: Union[tzinfo, str]) -> Tuple[datetime, datetime]:
+def week_to_date_starting_on(match: re.Match, tz: Union[pytz.BaseTzInfo, str]) -> Tuple[datetime, datetime]:
     """ Get date boundaries for the last `weekday` until today. 
 
     :param match: regex Match object
     :type match: re.Match
     :param tz: either a pre-built timzeone or a valid pytz timezone name
-    :type tz: Union[tzinfo, str]
+    :type tz: Union[pytz.BaseTzInfo, str]
     :return: (last `weekday`, today) as datetime objects
     :rtype: Tuple[datetime, datetime]
     """

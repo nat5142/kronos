@@ -2,11 +2,10 @@
 from __future__ import annotations
 
 import os
-from time import time
+import pytz
 from typing import Union, List
 from dateutil.rrule import rrule, DAILY
-from datetime import datetime, timedelta, tzinfo
-from dateutil.relativedelta import relativedelta, SU, MO, TU, WE, TH, FR, SA
+from datetime import datetime, timedelta
 
 from .utilities import get_default_daterange, make_timezone, convert_timezone
 
@@ -15,20 +14,10 @@ ISO_FMT = '%Y-%m-%d %H:%M:%S'
 DEFAULT_TZ = os.environ.get('KRONOS_TIMEZONE', 'UTC')  # Defaults to UTC if not set
 DEFAULT_FORMAT = os.environ.get('KRONOS_FORMAT', '%Y-%m-%d')
 
-REL_RANGE_MAP = {
-    'SUN': SU,
-    'MON': MO,
-    'TUES': TU,
-    'WED': WE,
-    'THURS': TH,
-    'FRI': FR,
-    'SAT': SA
-}
-
 
 class Kronos(object):
 
-    def __init__(self, start_date: str = None, end_date: str = None, timezone: Union[tzinfo, str] = DEFAULT_TZ,
+    def __init__(self, start_date: str = None, end_date: str = None, timezone: Union[pytz.BaseTzInfo, str] = DEFAULT_TZ,
                  date_format: str = DEFAULT_FORMAT):
         """ Generate a Kronos date range given a start date and end date (given as strings). Optionally
         provide a timezone (defaults to UTC).
@@ -38,12 +27,12 @@ class Kronos(object):
         :param end_date: date range end date, in format defined by `date_format`, defaults to today.
         :type end_date: str
         :param timezone: (optional) timezone. defaults to environment var `KRONOS_TIMEZONE`, "UTC" if not set.
-        :type timezone: Union[tzinfo, str] (optional) either a pre-built timzeone or a valid pytz timezone name.
+        :type timezone: Union[pytz.BaseTzInfo, str] (optional) either a pre-built timzeone or a valid pytz timezone name.
         :param date_format: (optional) strftime format string that will be used as default format for your object. Read by `KRONOS_FORMAT` environment variable. Defaults to YYYY-MM-DD.
         :type date_format: str
         """
 
-        self.tz: tzinfo = make_timezone(timezone=timezone)
+        self.tz = make_timezone(timezone=timezone)
 
         self.date_format = date_format
 
@@ -124,11 +113,11 @@ class Kronos(object):
         kwargs = {'hour': hour, 'minute': minute, 'second': second, 'microsecond': microsecond}
         self._end_date = self._end_date.replace(**{k: v for k, v in kwargs.items() if v})
 
-    def change_timezone(self, tz: Union[tzinfo, str]) -> Kronos:
+    def change_timezone(self, tz: Union[pytz.BaseTzInfo, str]) -> Kronos:
         """ Switch the timezone of the Kronos object without adjusting the time.
 
-        :param tz: either a pre-built tzinfo object or a timezone name as string
-        :type tz: Union[tzinfo, str]
+        :param tz: either a pre-built BaseTzInfo object or a timezone name as string
+        :type tz: Union[pytz.BaseTzInfo, str]
         :returns: self
         """
         timezone = make_timezone(tz)
@@ -137,7 +126,7 @@ class Kronos(object):
         self.tz = timezone
         return self
     
-    def parse_and_localize(self, dt_str: str, date_format: str, in_tz: Union[tzinfo, str] = 'UTC', out_tz: Union[tzinfo, str] = DEFAULT_TZ) -> datetime:
+    def parse_and_localize(self, dt_str: str, date_format: str, in_tz: Union[pytz.BaseTzInfo, str] = 'UTC', out_tz: Union[pytz.BaseTzInfo, str] = DEFAULT_TZ) -> datetime:
         """ Create a datetime object from input, set its timezone, and convert it to a new object.
 
         :param dt_str: a string-represented date
@@ -145,9 +134,9 @@ class Kronos(object):
         :param date_format: the datetime format of `dt_str`
         :type date_format: str
         :param in_tz: input timezone, defaults to 'UTC'
-        :type in_tz: Union[tzinfo, str], optional
+        :type in_tz: Union[pytz.BaseTzInfo, str], optional
         :param out_tz: output timezone, defaults to DEFAULT_TZ
-        :type out_tz: Union[tzinfo, str], optional
+        :type out_tz: Union[pytz.BaseTzInfo, str], optional
         :return: original date string as a datetime object in the new timezone, `out_tz`.
         :rtype: datetime
         """
@@ -179,7 +168,7 @@ class Kronos(object):
         for day in rrule(DAILY, dtstart=self._start_date, until=self._end_date):
             yield Kronos(day.strftime(self.date_format), day.strftime(self.date_format), date_format=self.date_format, timezone=self.tz)
 
-    def now(self, timezone: Union[tzinfo, str] = None) -> datetime:
+    def now(self, timezone: Union[pytz.BaseTzInfo, str] = None) -> datetime:
         """ Convenience func to return current local time specified by `timezone`. 
         
         :param timezone: (optional) timezone. returned as `self.tz` if not provided.
