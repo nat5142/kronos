@@ -9,6 +9,9 @@ from datetime import datetime, timedelta
 
 from .utilities import get_default_daterange, make_timezone, convert_timezone
 
+from dotenv import load_dotenv
+
+load_dotenv()
 
 ISO_FMT = '%Y-%m-%d %H:%M:%S'
 DEFAULT_TZ = os.environ.get('KRONOS_TIMEZONE', 'UTC')  # Defaults to UTC if not set
@@ -17,10 +20,14 @@ DEFAULT_FORMAT = os.environ.get('KRONOS_FORMAT', '%Y-%m-%d')
 
 class Kronos(object):
 
-    def __init__(self, start_date: str = None, end_date: str = None, timezone: Union[pytz.BaseTzInfo, str] = DEFAULT_TZ,
-                 date_format: str = DEFAULT_FORMAT):
+    def __init__(self, 
+                start_date: str = None, 
+                end_date: str = None, 
+                timezone: Union[pytz.BaseTzInfo, str] = DEFAULT_TZ,
+                date_format: str = DEFAULT_FORMAT):
         """ Generate a Kronos date range given a start date and end date (given as strings). Optionally
-        provide a timezone (defaults to UTC).
+        provide a timezone (defaults to UTC). If you provide an `end_date`, you must also provide a 
+        `start_date`. If `end_date` is omitted, it will default to today.
 
         :param start_date: date range start date, in format defined by `date_format`. defaults to yesterday.
         :type start_date: str
@@ -36,11 +43,14 @@ class Kronos(object):
 
         self.date_format = date_format
 
+        if end_date and not start_date:
+            raise AttributeError('Providing an `end_date` without providing a `start_date` is ambiguous. Please provide `start_date` if you want to set `end_date`.')
+
         if not start_date and not end_date:
             # No values were given
             try:
                 sd, ed = get_default_daterange(tz=self.tz)
-            except ValueError as exc:
+            except ValueError:
                 raise
         else:
             if start_date:
@@ -57,9 +67,15 @@ class Kronos(object):
         if sd > ed:
             raise ValueError('`start_date` cannot come after `end_date`.')
         
-        # set time to beginning/end of range
-        self._start_date: datetime = sd.replace(hour=0, minute=0, second=0, microsecond=0)
-        self._end_date: datetime = ed.replace(hour=23, minute=59, second=59, microsecond=999999)
+
+        # set start and end times to midnight if not given in input string
+        if not any([sd.hour, sd.minute, sd.second, sd.microsecond]):
+            sd = sd.replace(hour=0, minute=0, second=0, microsecond=0)
+        if not any([ed.hour, ed.minute, ed.second, ed.microsecond]):
+            ed = ed.replace(hour=23, minute=59, second=59, microsecond=999999)
+        
+        self._start_date = sd
+        self._end_date = ed
 
     @property
     def start_date(self) -> str:
@@ -104,6 +120,16 @@ class Kronos(object):
         :rtype: float
         """
         return self._end_date.timestamp()
+
+    @property
+    def start_isoformat(self) -> str:
+        """ Start date formatted as ISO-8601. """
+        return self._start_date.isoformat()
+    
+    @property
+    def end_isoformat(self) -> str:
+        """ End date formatted as ISO-8601. """
+        return self._end_date.isoformat()
 
     def set_start_time(self, hour: int = None, minute: int = None, second: int = None, microsecond: int = None):
         kwargs = {'hour': hour, 'minute': minute, 'second': second, 'microsecond': microsecond}
@@ -166,7 +192,22 @@ class Kronos(object):
     def day_range(self) -> List[Kronos]:
         """ Return a list of one-day Kronos objects for each date between objects' start and end date. """
         for day in rrule(DAILY, dtstart=self._start_date, until=self._end_date):
-            yield Kronos(day.strftime(self.date_format), day.strftime(self.date_format), date_format=self.date_format, timezone=self.tz)
+            day = day.replace(tzinfo=self.tz)
+            if day.strftime(self.date_format) == self.start_date:
+                # change _end_date time to 29:59:59
+                ed = day.replace(hour=23, minute=59, second=59, microsecond=999999)
+                yield Kronos(day.strftime(self.date_format), ed.strftime(self.date_format), date_format=self.date_format, timezone=self.tz)
+            elif day.strftime('%Y-%m-%d') == self.format_end('%Y-%m-%d'):
+                # change _start_date time to 00:00:00
+                # rrule uses the value of dtstart to carry over time parameters to each entry in the iterable. must ovveride with _end_date
+                sd = day.replace(hour=0, minute=0, second=0, microsecond=0)
+                ed = day.replace(hour=self._end_date.hour, minute=self._end_date.minute, second=self._end_date.second, microsecond=self._end_date.microsecond)
+                yield Kronos(sd.strftime(self.date_format), ed.strftime(self.date_format), date_format=self.date_format, timezone=self.tz)
+            else:
+                # set new object's _start_date time to 00:00:00, and 23:59:59 for _end_date
+                sd = day.replace(hour=0, minute=0, second=0, microsecond=0)
+                ed = day.replace(hour=23, minute=59, second=59, microsecond=999999)
+                yield Kronos(sd.strftime(self.date_format), ed.strftime(self.date_format), date_format=self.date_format, timezone=self.tz)
 
     def now(self, timezone: Union[pytz.BaseTzInfo, str] = None) -> datetime:
         """ Convenience func to return current local time specified by `timezone`. 

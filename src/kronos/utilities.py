@@ -159,10 +159,10 @@ def week_to_date_starting_on(match: re.Match, tz: Union[pytz.BaseTzInfo, str]) -
 
 
 _VALID_DATERANGES = {
-    r'LATEST': latest,
-    r'YESTERDAY_TODAY': latest,
-    r'LAST_MONTH': last_month,
-    r'MTD': month_to_date,
-    r'LAST_(?P<var>\d+)_DAYS': last_x_days,
-    r'THIS_WEEK__(?P<var>\w+)': week_to_date_starting_on
+    r'^LATEST$': latest,
+    r'^YESTERDAY_TODAY$': latest,
+    r'^LAST_MONTH$': last_month,
+    r'^MTD$': month_to_date,
+    r'^LAST_(?P<var>\d+)_DAYS$': last_x_days,
+    r'^THIS_WEEK__(?P<var>\w+)$': week_to_date_starting_on
 }

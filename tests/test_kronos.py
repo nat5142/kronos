@@ -10,7 +10,7 @@ import pytz
 from datetime import datetime, timedelta
 
 import src.kronos as k
-from src.kronos.kronos import Kronos, DEFAULT_TZ, DEFAULT_FORMAT
+from src.kronos.kronos import ISO_FMT, Kronos, DEFAULT_TZ, DEFAULT_FORMAT
 
 tz = pytz.timezone(DEFAULT_TZ)
 
@@ -56,3 +56,15 @@ def test_start_timestamp():
 def test_end_timestamp():
     kronos = Kronos()
     assert type(kronos.end_ts) == float
+
+
+def test_set_start_time():
+    kronos = Kronos()
+    kronos.set_start_time(hour=12, minute=15, second=59)
+    assert kronos.format_start(ISO_FMT).split(' ')[-1] == '12:15:59'
+
+
+def test_set_end_time():
+    kronos = Kronos()
+    kronos.set_end_time(hour=12, minute=15, second=59)
+    assert kronos.format_end(ISO_FMT).split(' ')[-1] == '12:15:59'
