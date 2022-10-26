@@ -37,13 +37,13 @@ def test_day_range():
     assert len(day_range) == 6
 
 
-def test_set_start_date():
+def test_set_start_time():
     kronos = Kronos()
     kronos.set_start_time(hour=8, minute=30, second=15)
 
     assert kronos.format_start('%H:%M:%S') == '08:30:15'
 
-def test_set_end_date():
+def test_set_end_time():
     kronos = Kronos()
     kronos.set_end_time(hour=8, minute=30, second=15)
 

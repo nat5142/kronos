@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import os
 import pytz
-from typing import Union, List
+from typing import Union, List, Generator
 from dateutil.rrule import rrule, DAILY
 from datetime import datetime, timedelta
 
@@ -189,8 +189,12 @@ class Kronos(object):
         """ Convenience pass-thru to datetime.fromtimestamp(...). Returns YYYY-MM-DD formatted date. """
         return datetime.fromtimestamp(unix_timestamp)
 
-    def day_range(self) -> List[Kronos]:
-        """ Return a list of one-day Kronos objects for each date between objects' start and end date. """
+    def day_range(self) -> Generator[Kronos]:
+        """ Yield one-day Kronos objects for each date between object's start and end date.
+
+        :yield: a one-day Kronos object for each date between self's start and end date
+        :rtype: Generator[Kronos]
+        """
         for day in rrule(DAILY, dtstart=self._start_date, until=self._end_date):
             day = day.replace(tzinfo=self.tz)
             if day.strftime(self.date_format) == self.start_date:
