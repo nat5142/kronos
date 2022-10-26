@@ -32,12 +32,12 @@ def test_no_dates_input():
 
 def test_datetime_inputs():
     today = datetime.now(tz=tz).strftime(ISO_FMT)
-    yesterday = datetime.now(tz=tz).strftime(ISO_FMT)
+    yesterday = (datetime.now(tz=tz) - timedelta(days=1)).strftime(ISO_FMT)
 
     kronos = Kronos(yesterday, today, date_format=ISO_FMT)
 
-    assert kronos.start_date == '{} 00:00:00'.format(yesterday.split(' ')[0])
-    assert kronos.end_date == '{} 23:59:59'.format(today.split(' ')[0])
+    assert kronos.start_date == yesterday
+    assert kronos.end_date == today
 
 
 def test_last_month_env_variable():
