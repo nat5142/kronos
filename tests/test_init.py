@@ -1,6 +1,7 @@
 import os
 import pytz
 import pytest
+import typing
 from datetime import datetime, timedelta
 
 from src.kronos.kronos import Kronos, DEFAULT_TZ, DEFAULT_FORMAT, ISO_FMT
@@ -16,9 +17,14 @@ def test_no_start_date():
 
 def test_no_end_date():
     yesterday = (datetime.now(tz=tz) - timedelta(days=1)).strftime(DEFAULT_FORMAT)
+    today = datetime.now(tz=tz).strftime(DEFAULT_FORMAT)
     kronos = Kronos(start_date=yesterday, end_date=None)
 
     assert kronos.start_date == yesterday
+    assert kronos.end_date == today
+    # use fget to reference properties
+    assert type(kronos.start_date) == typing.get_type_hints(Kronos.start_date.fget).get('return')
+    assert type(kronos.end_date) == typing.get_type_hints(Kronos.end_date.fget).get('return')
 
 
 def test_no_dates_input():

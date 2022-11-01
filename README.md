@@ -74,10 +74,19 @@ kronos.start_date
 kronos.end_date
 # 10/20/2022
 
+# format start and end date with new format
+kronos.format_start('%Y-%m-%d %H:%M:%S')
+# 2022-10-20 00:00:00
+kronos.format_end('%Y-%m-%d %H:%M:%S')
+# 2022-10-21 23:59:59
+
 # get the current date in specified timezone
 kronos = Kronos('America/Los_Angeles')
 kronos.current_date
 # 2022-10-20
+kronos = Kronos('America/Los_Angeles', date_format='%m/%d/%Y')
+kronos.current_date
+# 10/20/2022
 
 # overwrite your object's timezone without altering the time
 kronos = Kronos(timezone='UTC')
@@ -85,7 +94,7 @@ kronos.change_timezone(tz='America/New_York')
 
 # relative shift forward/back
 kronos = Kronos()
-kronos.shift_range(weeks=-1)
+kronos.shift_range(weeks=-1)  # pipes kwargs into timedelta
 # Kronos(start_date='2022-10-12', end_date='2022-10-13', ... )
 ```
 

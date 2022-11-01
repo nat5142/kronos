@@ -1,5 +1,5 @@
 """Tests for `kronos` module."""
-from typing import Generator
+import typing
 
 import pytest
 
@@ -16,7 +16,7 @@ tz = pytz.timezone(DEFAULT_TZ)
 
 
 @pytest.fixture
-def version() -> Generator[str, None, None]:
+def version() -> typing.Generator[str, None, None]:
     """Sample pytest fixture."""
     yield k.__version__
 
@@ -51,11 +51,12 @@ def test_set_end_time():
 
 def test_start_timestamp():
     kronos = Kronos()
-    assert type(kronos.start_ts) == float
+    # use fget to reference properties
+    assert type(kronos.start_ts) == typing.get_type_hints(Kronos.start_ts.fget).get('return')
 
 def test_end_timestamp():
     kronos = Kronos()
-    assert type(kronos.end_ts) == float
+    assert type(kronos.end_ts) == typing.get_type_hints(Kronos.end_ts.fget).get('return')
 
 
 def test_set_start_time():

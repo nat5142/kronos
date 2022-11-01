@@ -185,8 +185,8 @@ class Kronos(object):
         return parsed_date.strftime(out_format)
 
     @staticmethod
-    def from_timestamp(unix_timestamp) -> str:
-        """ Convenience pass-thru to datetime.fromtimestamp(...). Returns YYYY-MM-DD formatted date. """
+    def from_timestamp(unix_timestamp) -> datetime:
+        """ Convenience pass-thru to datetime.fromtimestamp(...). Returns a datetime object. """
         return datetime.fromtimestamp(unix_timestamp)
 
     def day_range(self) -> Generator[Kronos]:
