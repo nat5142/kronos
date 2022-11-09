@@ -60,3 +60,16 @@ def test_mtd_environment_variable():
     kronos = Kronos()
     assert kronos._start_date.day == 1
     assert datetime.now().strftime(kronos.date_format) == kronos.end_date
+
+
+def test_manual_entry_named_ranges():
+    today = datetime.now(tz=tz).strftime('%Y-%m-%d')
+    kronos = Kronos(named_range='TODAY')
+    assert kronos.start_date == today
+    assert kronos.end_date == today
+    kronos = Kronos(named_range='MTD')
+    assert kronos._start_date.day == 1
+    assert datetime.now().strftime(kronos.date_format) == kronos.end_date
+    kronos = Kronos(named_range='LAST_MONTH')
+    assert kronos._start_date.day == 1
+    assert (kronos._end_date + timedelta(days=1)).day == 1

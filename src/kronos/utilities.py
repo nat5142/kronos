@@ -2,7 +2,7 @@ import os
 import re
 import pytz
 from typing import Union, Tuple
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from dateutil.relativedelta import relativedelta, SU, MO, TU, WE, TH, FR, SA
 
 REL_RANGE_MAP = {
@@ -18,27 +18,48 @@ REL_RANGE_MAP = {
 _VALID_RELATIVE_DAY_ABBRS = ['SUN', 'MON', 'TUES', 'WED', 'THURS', 'FRI', 'SAT']
 
 
-def get_default_daterange(tz: Union[pytz.BaseTzInfo, str]) -> Tuple[datetime, datetime]:
+
+def get_default_daterange(tz: Union[pytz.BaseTzInfo, str], fmt: str) -> Tuple[str, str]:
     """ Get the default (fallback) timezone used by Kronos.
 
     :param tz: either a pre-built timzeone or a valid pytz timezone name
     :type tz: Union[pytz.BaseTzInfo, str]
+    :param fmt: a date format to return
+    :type fmt: str
     :raises ValueError: if an invalid `KRONOS_DATERANGE` is specified.
     :return: (start_dt, end_dt) for Kronos initialization.
-    :rtype: Tuple[datetime, datetime]
+    :rtype: Tuple[str, str]
     """
     end_dt = None
     start_dt = None
     env_var_value = os.environ.get('KRONOS_DATERANGE', 'LATEST')
 
-    for regex, func in _VALID_DATERANGES.items():
-        match = re.match(regex, env_var_value)
-        if match:
-            start_dt, end_dt = func(match, tz)
-            break
+    start_dt, end_dt = _get_named_daterange(env_var_value, tz, fmt=fmt)
     
-    if not start_dt and not end_dt:
+    if start_dt is None and end_dt is None:
         raise ValueError(f'Environment variable `KRONOS_DATERANGE` invalid (value: {env_var_value}). See docs for accepted values.')
+    
+    return start_dt, end_dt
+
+
+def _get_named_daterange(range_name: str, tz: Union[pytz.BaseTzInfo, str], fmt: str) -> Tuple[str, str]:
+    """ Get a valid named daterange.
+
+    :param range_name: a valid daterange name (all valid values for `KRONOS_DATERANGE`) 
+    :type range_name: str
+    :param tz: either a pre-built timzeone or a valid pytz timezone name
+    :type tz: Union[pytz.BaseTzInfo, str]
+    :param fmt: a date format to return
+    :type fmt: str
+    :return: (start_dt, end_dt)
+    :rtype: Tuple[str, str]
+    """
+    start_dt = end_dt = None
+    for regex, func in _VALID_DATERANGES.items():
+        match = re.match(regex, range_name)
+        if match:
+            start_dt, end_dt = func(match, tz, fmt=fmt)
+            break
     
     return start_dt, end_dt
 
@@ -74,79 +95,105 @@ def convert_timezone(date_obj: datetime, in_tz: Union[pytz.BaseTzInfo, str], out
         return in_timezone.localize(date_obj).astimezone(tz=out_timezone)
 
 
-def latest(match: re.Match, tz: Union[pytz.BaseTzInfo, str]) -> Tuple[datetime, datetime]:
+def latest(match: re.Match, tz: Union[pytz.BaseTzInfo, str], fmt: str) -> Tuple[str, str]:
     """ Get default daterange of (yesterday, today)
 
     :param match: regex Match object
     :type match: re.Match
     :param tz: either a pre-built timzeone or a valid pytz timezone name
     :type tz: Union[pytz.BaseTzInfo, str]
-    :return: (yesterday, today) as datetime objects
-    :rtype: Tuple[datetime, datetime]
+    :param fmt: a date format to return
+    :type fmt: str
+    :return: (yesterday, today) as YYYY-MM-DD date strings
+    :rtype: Tuple[str, str]
+    """
+    timezone = make_timezone(tz)
+    now = date.today()
+    return (now - relativedelta(days=1)).strftime(fmt), (now).strftime(fmt)
+
+def today(match: re.Match, tz: Union[pytz.BaseTzInfo, str], fmt: str) -> Tuple[str, str]:
+    """ Get just "today" a range.
+
+    :param match: regex Match object
+    :type match: re.Match
+    :param tz: either a pre-built timzeone or a valid pytz timezone name
+    :type tz: Union[pytz.BaseTzInfo, str]
+    :param fmt: a date format to return
+    :type fmt: str
+    :return: (today, today) as YYYY-MM-DD date strings
+    :rtype: Tuple[str, str]
     """
     timezone = make_timezone(tz)
     now = datetime.now(tz=timezone)
-    return (now - relativedelta(days=1)), (now)
+    return (now.strftime(fmt), now.strftime(fmt))
 
-def last_month(match: re.Match, tz: Union[pytz.BaseTzInfo, str]) -> Tuple[datetime, datetime]:
+def last_month(match: re.Match, tz: Union[pytz.BaseTzInfo, str], fmt: str) -> Tuple[str, str]:
     """ Get daterange containing last month
 
     :param match: regex Match object
     :type match: re.Match
     :param tz: either a pre-built timzeone or a valid pytz timezone name
     :type tz: Union[pytz.BaseTzInfo, str]
-    :return: last month (start, end) as datetime objects
+    :param fmt: a date format to return
+    :type fmt: str
+    :return: last month (start, end) as YYYY-MM-DD date strings
     :rtype: Tuple[datetime, datetime]
     """
     timezone = make_timezone(tz)
     now = datetime.now(tz=timezone).replace(day=1)  # first day of this month
     end_dt = now.replace(day=1) - timedelta(days=1)  # last day of last month
     start_dt = end_dt.replace(day=1)
-    return start_dt, end_dt
+    return start_dt.strftime(fmt), end_dt.strftime(fmt)
 
 
-def month_to_date(match: re.Match, tz: Union[pytz.BaseTzInfo, str]) -> Tuple[datetime, datetime]:
+def month_to_date(match: re.Match, tz: Union[pytz.BaseTzInfo, str], fmt: str) -> Tuple[str, str]:
     """ Get daterange for MTD.
 
     :param match: regex Match object
     :type match: re.Match
     :param tz: either a pre-built timzeone or a valid pytz timezone name
     :type tz: Union[pytz.BaseTzInfo, str]
-    :return: MTD (1st, today) as datetime objects
-    :rtype: Tuple[datetime, datetime]
+    :param fmt: a date format to return
+    :type fmt: str
+    :return: MTD (1st, today) as YYYY-MM-DD date strings
+    :rtype: Tuple[str, str]
     """
     timezone = make_timezone(tz)
     now = datetime.now(tz=timezone)
     start_dt = now.replace(day=1)
-    return start_dt, now
+    return start_dt.strftime(fmt), now.strftime(fmt)
 
 
-def last_x_days(match: re.Match, tz: Union[pytz.BaseTzInfo, str]) -> Tuple[datetime, datetime]:
+def last_x_days(match: re.Match, tz: Union[pytz.BaseTzInfo, str], fmt: str) -> Tuple[str, str]:
     """ Get date boundaries for `x` days ago until today
 
     :param match: regex Match object
     :type match: re.Match
     :param tz: either a pre-built timzeone or a valid pytz timezone name
     :type tz: Union[pytz.BaseTzInfo, str]
-    :return: (x days ago, today) as datetime objects
-    :rtype: Tuple[datetime, datetime]
+    :param fmt: a date format to return
+    :type fmt: str
+    :return: (x days ago, today) as YYYY-MM-DD date strings
+    :rtype: Tuple[str, str]
     """
     match_group = match.groupdict()
     timezone = make_timezone(tz)
     now = datetime.now(tz=timezone)
     start_dt = now - timedelta(days=int(match_group['var']))
-    return start_dt, now
+    return start_dt.strftime(fmt), now.strftime(fmt)
 
 
-def week_to_date_starting_on(match: re.Match, tz: Union[pytz.BaseTzInfo, str]) -> Tuple[datetime, datetime]:
+def week_to_date_starting_on(match: re.Match, tz: Union[pytz.BaseTzInfo, str], fmt: str) -> Tuple[str, str]:
     """ Get date boundaries for the last `weekday` until today. 
 
     :param match: regex Match object
     :type match: re.Match
     :param tz: either a pre-built timzeone or a valid pytz timezone name
     :type tz: Union[pytz.BaseTzInfo, str]
-    :return: (last `weekday`, today) as datetime objects
-    :rtype: Tuple[datetime, datetime]
+    :param fmt: a date format to return
+    :type fmt: str
+    :return: (last `weekday`, today) as YYYY-MM-DD date strings
+    :rtype: Tuple[str, str]
     """
     weekday = match.groupdict()['var']
     if weekday.upper() not in _VALID_RELATIVE_DAY_ABBRS:
@@ -155,12 +202,13 @@ def week_to_date_starting_on(match: re.Match, tz: Union[pytz.BaseTzInfo, str]) -
     timezone = make_timezone(tz)
     now = datetime.now(tz=timezone)
     start_dt = now - relativedelta(weekday=REL_RANGE_MAP[weekday](-1))
-    return start_dt, now
+    return start_dt.strftime(fmt), now.strftime(fmt)
 
 
 _VALID_DATERANGES = {
     r'^LATEST$': latest,
     r'^YESTERDAY_TODAY$': latest,
+    r'^TODAY$': today,
     r'^LAST_MONTH$': last_month,
     r'^MTD$': month_to_date,
     r'^LAST_(?P<var>\d+)_DAYS$': last_x_days,
