@@ -108,7 +108,7 @@ def latest(match: re.Match, tz: Union[pytz.BaseTzInfo, str], fmt: str) -> Tuple[
     :rtype: Tuple[str, str]
     """
     timezone = make_timezone(tz)
-    now = date.today()
+    now = datetime.now(tz=timezone)
     return (now - relativedelta(days=1)).strftime(fmt), (now).strftime(fmt)
 
 def today(match: re.Match, tz: Union[pytz.BaseTzInfo, str], fmt: str) -> Tuple[str, str]:

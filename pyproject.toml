@@ -1,7 +1,7 @@
 
 [tool.poetry]
 name = "kronos-daterange"
-version = "0.0.6"
+version = "0.0.7"
 description = "Kronos makes date ranges easier."
 authors = ["Nick Tulli <ntulli.dev@gmail.com>"]
 
