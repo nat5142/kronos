@@ -23,7 +23,7 @@ def version() -> typing.Generator[str, None, None]:
 
 def test_version(version: str) -> None:
     """Sample pytest test function with the pytest fixture as an argument."""
-    assert version == "0.0.7"
+    assert version == "0.0.8"
 
 
 def test_day_range():
@@ -69,3 +69,8 @@ def test_set_end_time():
     kronos = Kronos()
     kronos.set_end_time(hour=12, minute=15, second=59)
     assert kronos.format_end(ISO_FMT).split(' ')[-1] == '12:15:59'
+
+
+def test_last_x_days():
+    kronos = Kronos().last_x_days(30)
+    assert type(kronos) == Kronos

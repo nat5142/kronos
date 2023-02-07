@@ -139,12 +139,16 @@ class Kronos(object):
         return self._end_date.isoformat()
 
     def set_start_time(self, hour: int = None, minute: int = None, second: int = None, microsecond: int = None):
+        """ Set the time component for the start date late. Return `self`. """
         kwargs = {'hour': hour, 'minute': minute, 'second': second, 'microsecond': microsecond}
         self._start_date = self._start_date.replace(**{k: v for k, v in kwargs.items() if v})
+        return self
     
     def set_end_time(self, hour: int = None, minute: int = None, second: int = None, microsecond: int = None):
+        """ Set the time component for the end date late. Return `self`. """
         kwargs = {'hour': hour, 'minute': minute, 'second': second, 'microsecond': microsecond}
         self._end_date = self._end_date.replace(**{k: v for k, v in kwargs.items() if v})
+        return self
 
     def change_timezone(self, tz: Union[pytz.BaseTzInfo, str]) -> Kronos:
         """ Switch the timezone of the Kronos object without adjusting the time.
@@ -236,15 +240,14 @@ class Kronos(object):
 
         return datetime.now(tz=tz)
 
-    @classmethod
-    def last_x_days(cls, x: int = 30) -> Kronos:
+    def last_x_days(self, x: int = 30) -> Kronos:
         """Get the last `x` days since today.
 
         :param x: number of days to go back, defaults to 30
         :type x: int, optional
         """
-        start_date = cls.now() - timedelta(days=x)
-        return Kronos(start_date=start_date.strftime('%Y-%m-%d'), end_date=cls.now().strftime('%Y-%m-%d'))
+        start_date = self.now() - timedelta(days=x)
+        return Kronos(start_date=start_date.strftime('%Y-%m-%d'), end_date=self.now().strftime('%Y-%m-%d'))
     
     def list_date_range(self) -> List[datetime]:
         """ List all dates in the Kronos daterange as datetime objects.
@@ -254,7 +257,7 @@ class Kronos(object):
         """
         return list(rrule(freq=DAILY, dtstart=self._start_date, until=self._end_date))
 
-    def format_start(self, out_format) -> str:
+    def format_start(self, out_format: str) -> str:
         """ Return start date in specified format.
 
         :param out_format: a valid strftime format
@@ -262,7 +265,7 @@ class Kronos(object):
         """
         return self._start_date.strftime(out_format)
 
-    def format_end(self, out_format) -> str:
+    def format_end(self, out_format: str) -> str:
         """ Return end date in specified format.
 
         :param out_format: a valid strftime format
@@ -270,20 +273,20 @@ class Kronos(object):
         """
         return self._end_date.strftime(out_format)
 
-    def shift_start_tz(self, target_tz='UTC') -> datetime:
+    def shift_start_tz(self, target_tz: Union[pytz.BaseTzInfo, str] = 'UTC') -> datetime:
         """ Shift the start_date timezone from self.tz to a timezone specified by `target_tz`
 
-        :param target_tz: offer target timezone, defaults to 'UTC'
-        :type target_tz: str, optional
+        :param target_tz: either a pre-built BaseTzInfo object or a timezone name as string
+        :type target_tz: Union[pytz.BaseTzInfo, str]
         :return: timezone-aware datetime object
         """
         return self._start_date.astimezone(tz=make_timezone(target_tz))
 
-    def shift_end_tz(self, target_tz='UTC') -> datetime:
+    def shift_end_tz(self, target_tz: Union[pytz.BaseTzInfo, str] = 'UTC') -> datetime:
         """ Shift the end_date timezone from self.tz to a timezone specified by `target_tz`
 
-        :param target_tz: offer target timezone, defaults to 'UTC'
-        :type target_tz: str, optional
+        :param target_tz: either a pre-built BaseTzInfo object or a timezone name as string
+        :type target_tz: Union[pytz.BaseTzInfo, str]
         :return: timezone-aware datetime object
         """
         return self._end_date.astimezone(tz=make_timezone(target_tz))
