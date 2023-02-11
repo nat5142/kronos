@@ -241,13 +241,13 @@ class Kronos(object):
         return datetime.now(tz=tz)
 
     def last_x_days(self, x: int = 30) -> Kronos:
-        """Get the last `x` days since today.
+        """ Get the last `x` days since today.
 
         :param x: number of days to go back, defaults to 30
         :type x: int, optional
         """
         start_date = self.now() - timedelta(days=x)
-        return Kronos(start_date=start_date.strftime('%Y-%m-%d'), end_date=self.now().strftime('%Y-%m-%d'))
+        return self.__class__(start_date=start_date.strftime('%Y-%m-%d'), end_date=self.now().strftime('%Y-%m-%d'))
     
     def list_date_range(self) -> List[datetime]:
         """ List all dates in the Kronos daterange as datetime objects.
@@ -303,7 +303,7 @@ class Kronos(object):
         """
         new_start = (self._start_date + timedelta(**kwargs)).strftime(self.date_format)
         new_end = (self._end_date + timedelta(**kwargs)).strftime(self.date_format)
-        return Kronos(new_start, new_end)
+        return self.__class__(new_start, new_end)
 
     def __repr__(self):
         return "Kronos(start_date='{}', end_date='{}', date_format='{}', timezone='{}')".format(

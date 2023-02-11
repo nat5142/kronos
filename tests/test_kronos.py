@@ -14,6 +14,10 @@ from src.kronos.kronos import ISO_FMT, Kronos, DEFAULT_TZ, DEFAULT_FORMAT
 
 tz = pytz.timezone(DEFAULT_TZ)
 
+class ParentKronos(Kronos):
+    def this_function_should_exist(self):
+        pass
+
 
 @pytest.fixture
 def version() -> typing.Generator[str, None, None]:
@@ -23,7 +27,7 @@ def version() -> typing.Generator[str, None, None]:
 
 def test_version(version: str) -> None:
     """Sample pytest test function with the pytest fixture as an argument."""
-    assert version == "0.0.8"
+    assert version == "0.0.9"
 
 
 def test_day_range():
@@ -74,3 +78,12 @@ def test_set_end_time():
 def test_last_x_days():
     kronos = Kronos().last_x_days(30)
     assert type(kronos) == Kronos
+
+
+def test_override_class_retention():
+    kronos = ParentKronos()
+    last_x_days_kronos = kronos.last_x_days(30)
+    assert hasattr(last_x_days_kronos, 'this_function_should_exist')
+    
+    shift_range_kronos = kronos.shift_range(days=-5)
+    assert hasattr(shift_range_kronos, 'this_function_should_exist')
