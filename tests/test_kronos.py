@@ -15,8 +15,8 @@ from src.kronos.kronos import ISO_FMT, Kronos, DEFAULT_TZ, DEFAULT_FORMAT
 tz = pytz.timezone(DEFAULT_TZ)
 
 class ParentKronos(Kronos):
-        def this_function_should_exist(self):
-            pass
+    def this_function_should_exist(self):
+        pass
 
 
 @pytest.fixture
