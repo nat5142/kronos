@@ -25,8 +25,10 @@ Kronos makes dateranges easier.
 * Documentation: <https://nat5142-kronos.readthedocs.io/>
 * Free software: BSD
 
+<br>
 
 ## Quickstart
+---
 
 Install from pip:
 
@@ -41,8 +43,10 @@ from kronos import Kronos
 kronos = Kronos(start_date='2022-01-01', end_date='2022-01-31')
 ```
 
+<br>
 
 ## Feature Demo
+---
 
 ```python
 # import
@@ -98,7 +102,10 @@ kronos.shift_range(weeks=-1)  # pipes kwargs into timedelta
 # Kronos(start_date='2022-10-12', end_date='2022-10-13', ... )
 ```
 
+<br>
+
 ## Defaults/Environment Variables
+---
 
 Kronos is prepared to accept the following environment variables:
 
@@ -123,7 +130,10 @@ List of accepted values:
 - `LAST_{X}_DAYS`: relative range where end_date is today, start date is set X days behind.
 - `THIS_WEEK__{X}`: week-to-date starting on previous day of week specified by X. Valid values for X: `SUN, MON, TUES, WED, THURS, FRI, SAT`
 
+<br>
+
 ## Credits
+---
 
 This package was created with [Cookiecutter][cookiecutter] and the [fedejaure/cookiecutter-modern-pypackage][cookiecutter-modern-pypackage] project template.
 
