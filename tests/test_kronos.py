@@ -27,7 +27,7 @@ def version() -> typing.Generator[str, None, None]:
 
 def test_version(version: str) -> None:
     """Sample pytest test function with the pytest fixture as an argument."""
-    assert version == "0.0.9"
+    assert version == "0.0.10"
 
 
 def test_day_range():
@@ -87,3 +87,6 @@ def test_override_class_retention():
     
     shift_range_kronos = kronos.shift_range(days=-5)
     assert hasattr(shift_range_kronos, 'this_function_should_exist')
+
+    day_range_kronos_list = last_x_days_kronos.day_range()
+    assert all([hasattr(x, 'this_function_should_exist') for x in day_range_kronos_list])

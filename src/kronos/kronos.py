@@ -214,18 +214,18 @@ class Kronos(object):
             if day.strftime(self.date_format) == self.start_date:
                 # change _end_date time to 29:59:59
                 ed = day.replace(hour=23, minute=59, second=59, microsecond=999999)
-                yield Kronos(day.strftime(self.date_format), ed.strftime(self.date_format), date_format=self.date_format, timezone=self.tz)
+                yield self.__class__(day.strftime(self.date_format), ed.strftime(self.date_format), date_format=self.date_format, timezone=self.tz)
             elif day.strftime('%Y-%m-%d') == self.format_end('%Y-%m-%d'):
                 # change _start_date time to 00:00:00
                 # rrule uses the value of dtstart to carry over time parameters to each entry in the iterable. must ovveride with _end_date
                 sd = day.replace(hour=0, minute=0, second=0, microsecond=0)
                 ed = day.replace(hour=self._end_date.hour, minute=self._end_date.minute, second=self._end_date.second, microsecond=self._end_date.microsecond)
-                yield Kronos(sd.strftime(self.date_format), ed.strftime(self.date_format), date_format=self.date_format, timezone=self.tz)
+                yield self.__class__(sd.strftime(self.date_format), ed.strftime(self.date_format), date_format=self.date_format, timezone=self.tz)
             else:
                 # set new object's _start_date time to 00:00:00, and 23:59:59 for _end_date
                 sd = day.replace(hour=0, minute=0, second=0, microsecond=0)
                 ed = day.replace(hour=23, minute=59, second=59, microsecond=999999)
-                yield Kronos(sd.strftime(self.date_format), ed.strftime(self.date_format), date_format=self.date_format, timezone=self.tz)
+                yield self.__class__(sd.strftime(self.date_format), ed.strftime(self.date_format), date_format=self.date_format, timezone=self.tz)
 
     def now(self, timezone: Union[pytz.BaseTzInfo, str] = None) -> datetime:
         """ Convenience func to return current local time specified by `timezone`. 
@@ -306,7 +306,6 @@ class Kronos(object):
         return self.__class__(new_start, new_end)
 
     def __repr__(self):
-        return "Kronos(start_date='{}', end_date='{}', date_format='{}', timezone='{}')".format(
-            self.start_date, self.end_date, self.date_format, self.tz.zone
+        return "{}(start_date='{}', end_date='{}', date_format='{}', timezone='{}')".format(
+            self.__class__.__name__, self.start_date, self.end_date, self.date_format, self.tz.zone
         )
-
