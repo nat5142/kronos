@@ -2,12 +2,14 @@
 from __future__ import annotations
 
 import os
+import warnings
+from typing import Union, List, Generator, Tuple
+
 import pytz
-from typing import Union, List, Generator
 from dateutil.rrule import rrule, DAILY
 from datetime import datetime, timedelta
 
-from .utilities import get_default_daterange, make_timezone, convert_timezone, _get_named_daterange
+from .utilities import get_default_daterange, make_timezone, convert_timezone, _get_named_daterange, handle_ambiguous_datetime
 
 from dotenv import load_dotenv
 
@@ -21,8 +23,8 @@ DEFAULT_FORMAT = os.environ.get('KRONOS_FORMAT', '%Y-%m-%d')
 class Kronos(object):
 
     def __init__(self, 
-                start_date: str = None, 
-                end_date: str = None, 
+                start_date: Union[datetime, str] = None, 
+                end_date: Union[datetime, str] = None, 
                 timezone: Union[pytz.BaseTzInfo, str] = DEFAULT_TZ,
                 date_format: str = DEFAULT_FORMAT,
                 named_range: str = None):
@@ -31,9 +33,9 @@ class Kronos(object):
         `start_date`. If `end_date` is omitted, it will default to today.
 
         :param start_date: date range start date, in format defined by `date_format`. defaults to yesterday.
-        :type start_date: str
+        :type start_date: Union[datetime, str]
         :param end_date: date range end date, in format defined by `date_format`, defaults to today.
-        :type end_date: str
+        :type end_date: Union[datetime, str]
         :param timezone: (optional) timezone. defaults to environment var `KRONOS_TIMEZONE`, "UTC" if not set.
         :type timezone: Union[pytz.BaseTzInfo, str] (optional) either a pre-built timzeone or a valid pytz timezone name.
         :param date_format: (optional) strftime format string that will be used as default format for your object. Read by `KRONOS_FORMAT` environment variable. Defaults to YYYY-MM-DD.
@@ -42,7 +44,38 @@ class Kronos(object):
         :type named_daterange: str 
         """
 
-        self.tz = make_timezone(timezone=timezone)
+        # initialize timezone
+        self.tz = None
+
+        if isinstance(start_date, datetime) and isinstance(end_date, datetime):
+            # both args are datetimes
+            if (start_date.tzinfo is not None and end_date.tzinfo is not None):
+                # both args are timezone-aware
+                if start_date.tzinfo != end_date.tzinfo:
+                    # they do not have the same timezone. convert to the default value of `timezone`, but warn the user.
+                    warnings.warn('Your start date and end date have different timezones. Converting to value provided in `timezone` (or default): {}'.format(timezone))
+                else:
+                    # they have the same timezone! it's settled.
+                    self.tz = start_date.tzinfo
+            elif bool(start_date.tzinfo) ^ bool(end_date.tzinfo):  # this is a logical XOR. bool is just a subclass of int (1 or 0). bitwise check works here.
+                # one of these is timezone-aware. use it
+                self.tz = start_date.tzinfo or end_date.tzinfo
+            else:
+                # neither are timezone-aware. fall back to default.
+                self.tz = make_timezone(timezone=timezone)
+        elif isinstance(start_date, datetime) or isinstance(end_date, datetime):  # no logical XOR required here
+            # one of them is a datetime object
+            if timezone:
+                # user specified gave us a timezone to convert to. use it
+                self.tz = make_timezone(timezone=timezone)
+            else:
+                # use the one they gave us on the dt object
+                self.tz = start_date.tzinfo or end_date.tzinfo
+        
+        if self.tz is None:
+            if not timezone:
+                timezone = DEFAULT_TZ
+            self.tz = make_timezone(timezone=timezone)
 
         self.date_format = date_format
 
@@ -50,39 +83,42 @@ class Kronos(object):
             raise AttributeError('Providing an `end_date` without providing a `start_date` is ambiguous. Please provide `start_date` if you want to set `end_date`.')
         
         if named_range is not None:
-            start_date, end_date = _get_named_daterange(range_name=named_range, tz=self.tz, fmt=self.date_format)
+            start_date, end_date = _get_named_daterange(range_name=named_range, tz=self.tz)
             if start_date is None and end_date is None:
                 raise ValueError(f'The value you provided for `named_range=` is not accepted. Please provide a valid `KRONOS_DATERANGE` name (see docs). You sent: `{named_range}`')
         else:
             if not start_date and not end_date:
                 # No values were given
                 try:
-                    start_date, end_date = get_default_daterange(tz=self.tz, fmt=self.date_format)
+                    start_date, end_date = get_default_daterange(tz=self.tz)
                 except ValueError:
                     raise
             else:
-                if not start_date:
+                if start_date:
+                    # handle start date as either string or datetime object (and localize)
+                    start_date = handle_ambiguous_datetime(start_date, self.tz, self.date_format)
+                else:
                     # default to yesterday
-                    start_date = (datetime.now(tz=self.tz) - timedelta(days=1)).strftime(self.date_format)
+                    start_date = (datetime.now(tz=self.tz) - timedelta(days=1))
 
-                if not end_date:
+                if end_date:
+                    # handle ene date as either string or datetime object (and localize)
+                    end_date = handle_ambiguous_datetime(end_date, self.tz, self.date_format)
+                else:
                     # default to today
-                    end_date = datetime.now(tz=self.tz).strftime(self.date_format)
-        
-        sd = self.tz.localize(datetime.strptime(start_date, self.date_format))
-        ed = self.tz.localize(datetime.strptime(end_date, self.date_format))      
+                    end_date = datetime.now(tz=self.tz)
 
         # set start and end times to midnight if not given in input string
-        if not any([sd.hour, sd.minute, sd.second, sd.microsecond]):
-            sd = sd.replace(hour=0, minute=0, second=0, microsecond=0)
-        if not any([ed.hour, ed.minute, ed.second, ed.microsecond]):
-            ed = ed.replace(hour=23, minute=59, second=59, microsecond=999999)
+        if not any([start_date.hour, start_date.minute, start_date.second, start_date.microsecond]):
+            start_date = start_date.replace(hour=0, minute=0, second=0, microsecond=0)
+        if not any([end_date.hour, end_date.minute, end_date.second, end_date.microsecond]):
+            end_date = end_date.replace(hour=23, minute=59, second=59, microsecond=999999)
 
-        if sd > ed:
+        if start_date > end_date:
             raise ValueError('`start_date` cannot come after `end_date`.')
         
-        self._start_date = sd
-        self._end_date = ed
+        self._start_date = start_date
+        self._end_date = end_date
 
     @property
     def start_date(self) -> str:
@@ -304,6 +340,23 @@ class Kronos(object):
         new_start = (self._start_date + timedelta(**kwargs)).strftime(self.date_format)
         new_end = (self._end_date + timedelta(**kwargs)).strftime(self.date_format)
         return self.__class__(new_start, new_end)
+    
+    def splice(self, in_dt: Union[datetime, str], fmt: str = DEFAULT_FORMAT) -> Tuple[Kronos, Kronos]:
+        """ Bisect a Kronos daterange, returning two Kronos objects: one that starts at the original start date and ends at the input datetime, 
+        and another that starts at the input datetime and ends at the original end date, i.e.:
+
+        (Kronos(start_date, `in_dt`), Kronos(`in_dt`, end_date))
+
+        :param in_dt: datetime to be used to bisect the existing Kronos daterange
+        :type in_dt: Union[datetime, str]
+        :param fmt: if `in_dt` is a string, provide its strftime format string here. defaults to DEFAULT_FORMAT
+        :type fmt: str, optional
+        :return: two Kronos objects split on the `in_dt`
+        :rtype: Tuple[Kronos, Kronos]
+        """
+        divider = handle_ambiguous_datetime(datetime_item=in_dt, timezone=self.tz, fmt=fmt)
+        return Kronos(self._start_date, divider, timezone=self.tz), Kronos(divider, self._end_date, timezone=self.tz)
+
 
     def __repr__(self):
         return "{}(start_date='{}', end_date='{}', date_format='{}', timezone='{}')".format(
