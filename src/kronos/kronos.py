@@ -13,7 +13,7 @@ from .utilities import get_default_daterange, make_timezone, convert_timezone, _
 
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(override=True)
 
 ISO_FMT = '%Y-%m-%d %H:%M:%S'
 DEFAULT_TZ = os.environ.get('KRONOS_TIMEZONE', 'UTC')  # Defaults to UTC if not set
