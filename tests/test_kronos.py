@@ -1,9 +1,9 @@
 """Tests for `kronos` module."""
+import os
 import typing
-
 import pytest
 
-import os
+from kronos.utilities import make_timezone
 os.environ['KRONOS_DATERANGE'] = 'LATEST'
 
 import pytz
@@ -27,7 +27,7 @@ def version() -> typing.Generator[str, None, None]:
 
 def test_version(version: str) -> None:
     """Sample pytest test function with the pytest fixture as an argument."""
-    assert version == "0.0.10"
+    assert version == "0.0.11"
 
 
 def test_day_range():
@@ -90,3 +90,25 @@ def test_override_class_retention():
 
     day_range_kronos_list = last_x_days_kronos.day_range()
     assert all([hasattr(x, 'this_function_should_exist') for x in day_range_kronos_list])
+
+
+def test_splice_kronos_with_string():
+    kronos = Kronos('2023-03-01', '2023-03-08')
+    dt = '2023-03-05 12:00:01'
+    k1, k2 = kronos.splice(dt, fmt=ISO_FMT)
+    assert k1.format_end(ISO_FMT) == dt
+    assert k2.format_start(ISO_FMT) == dt
+
+    dt = '2023-03-05T12:00:01.123Z'
+    k1, k2 = kronos.splice(dt, fmt='%Y-%m-%dT%H:%M:%S.%fZ')
+    assert k1.format_end(ISO_FMT) == '2023-03-05 12:00:01'
+    assert k2.format_start(ISO_FMT) == '2023-03-05 12:00:01'
+
+
+def test_splice_kronos_with_datetime():
+    timezone = make_timezone('UTC')
+    kronos = Kronos('2023-03-01', '2023-03-08', timezone='UTC')
+    dt = timezone.localize(datetime(2023, 3, 5, 12, 0, 1))
+    k1, k2 = kronos.splice(dt)
+    assert k1.format_end(ISO_FMT) == '2023-03-05 12:00:01'
+    assert k2.format_start(ISO_FMT) == '2023-03-05 12:00:01'
