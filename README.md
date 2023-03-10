@@ -100,6 +100,23 @@ kronos.change_timezone(tz='America/New_York')
 kronos = Kronos()
 kronos.shift_range(weeks=-1)  # pipes kwargs into timedelta
 # Kronos(start_date='2022-10-12', end_date='2022-10-13', ... )
+
+# pass start and end dates as datetime objects
+start_dt = datetime(2023, 3, 8, 12, 0, 0)
+end_dt = datetime(2023, 3, 9, 12, 0, 0)
+kronos = Kronos(start_dt, end_dt)
+kronos.format_start('%Y-%m-%d %H:%M:%S')
+# 2023-03-08 12:00:00
+kronos.format_end('%Y-%m-%d %H:%M:%S')
+# 2023-03-09 12:00:00
+
+# bisect a daterange
+kronos = Kronos('2023-03-01', '2023-03-09')
+k1, k2 = kronos.splice('2023-03-04')
+print(k1)
+# Kronos(start_date='2023-03-01', end_date='2023-03-04', ...) 
+print(k2)
+# Kronos(start_date='2023-03-04', end_date='2023-03-09', ...)
 ```
 
 <br>
