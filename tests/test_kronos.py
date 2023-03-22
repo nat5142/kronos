@@ -27,7 +27,7 @@ def version() -> typing.Generator[str, None, None]:
 
 def test_version(version: str) -> None:
     """Sample pytest test function with the pytest fixture as an argument."""
-    assert version == "0.0.11"
+    assert version == "0.0.12"
 
 
 def test_day_range():
