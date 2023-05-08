@@ -11,10 +11,6 @@ from datetime import datetime, timedelta
 
 from .utilities import get_default_daterange, make_timezone, convert_timezone, _get_named_daterange, handle_ambiguous_datetime
 
-from dotenv import load_dotenv
-
-load_dotenv(override=True)
-
 ISO_FMT = '%Y-%m-%d %H:%M:%S'
 DEFAULT_TZ = os.environ.get('KRONOS_TIMEZONE', 'UTC')  # Defaults to UTC if not set
 DEFAULT_FORMAT = os.environ.get('KRONOS_FORMAT', '%Y-%m-%d')
