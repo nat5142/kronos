@@ -27,7 +27,7 @@ def version() -> typing.Generator[str, None, None]:
 
 def test_version(version: str) -> None:
     """Sample pytest test function with the pytest fixture as an argument."""
-    assert version == "0.0.13"
+    assert version == "0.0.14"
 
 
 def test_day_range():
@@ -112,3 +112,63 @@ def test_splice_kronos_with_datetime():
     k1, k2 = kronos.splice(dt)
     assert k1.format_end(ISO_FMT) == '2023-03-05 12:00:01'
     assert k2.format_start(ISO_FMT) == '2023-03-05 12:00:01'
+
+
+# recall that Kronos(start_date=None, end_date=...) is invalid
+def test_beginning_and_end_of_day_for_omitted_start_date():
+    with pytest.raises(AttributeError):
+        today = datetime.now(tz=tz).strftime(DEFAULT_FORMAT)
+        kronos = Kronos(start_date=None, end_date=today)
+
+
+def test_beginning_and_end_of_day_for_omitted_end_date():
+    yesterday = (datetime.now(tz=tz) - timedelta(days=1)).strftime('%Y-%m-%d')
+    today = datetime.now(tz=tz).strftime('%Y-%m-%d')
+    kronos = Kronos(start_date=yesterday, end_date=None)
+
+    assert kronos.start_date == yesterday
+    assert kronos.end_date == today
+
+    assert kronos._start_date.hour == 0
+    assert kronos._start_date.minute == 0
+    assert kronos._start_date.second == 0
+    assert kronos._start_date.microsecond == 0
+
+    assert kronos._end_date.hour == 23
+    assert kronos._end_date.minute == 59
+    assert kronos._end_date.second == 59
+    assert kronos._end_date.microsecond == 999999
+
+
+def  test_beginning_and_end_of_day_for_omitted_both():
+    yesterday = (datetime.now(tz=tz) - timedelta(days=1)).strftime('%Y-%m-%d')
+    today = datetime.now(tz=tz).strftime('%Y-%m-%d')
+    kronos = Kronos(start_date=None, end_date=None)
+
+    assert kronos.start_date == yesterday
+    assert kronos.end_date == today
+
+    assert kronos._start_date.hour == 0
+    assert kronos._start_date.minute == 0
+    assert kronos._start_date.second == 0
+    assert kronos._start_date.microsecond == 0
+
+    assert kronos._end_date.hour == 23
+    assert kronos._end_date.minute == 59
+    assert kronos._end_date.second == 59
+    assert kronos._end_date.microsecond == 999999
+
+
+def test_from_timestamp():
+    timezone = 'America/New_York'
+    sample_unix_timestamp = 1702505330
+    dt = Kronos(date_format='%Y-%m-%d').from_timestamp(sample_unix_timestamp)
+    assert dt.strftime('%Y-%m-%d') == '2023-12-13'
+
+    dt_local = Kronos(date_format='%Y-%m-%d').from_timestamp(sample_unix_timestamp, in_timezone=timezone)
+    assert dt_local.tzinfo.zone == timezone
+    assert dt_local.hour == 17
+
+    dt_local_to_utc = Kronos(date_format='%Y-%m-%d').from_timestamp(sample_unix_timestamp, in_timezone='America/New_York', out_timezone='UTC')
+    assert dt_local_to_utc.tzinfo.zone == 'UTC'
+    assert dt_local_to_utc.hour == 22

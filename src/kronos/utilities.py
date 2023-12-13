@@ -55,6 +55,8 @@ def _get_named_daterange(range_name: str, tz: Union[pytz.BaseTzInfo, str]) -> Tu
         match = re.match(regex, range_name)
         if match:
             start_dt, end_dt = func(match, tz)
+            start_dt = start_dt.replace(hour=0, minute=0, second=0, microsecond=0)
+            end_dt = end_dt.replace(hour=23, minute=59, second=59, microsecond=999999)
             break
     
     return start_dt, end_dt
