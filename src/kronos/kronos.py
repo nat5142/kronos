@@ -95,14 +95,14 @@ class Kronos(object):
                     start_date = handle_ambiguous_datetime(start_date, self.tz, self.date_format)
                 else:
                     # default to yesterday
-                    start_date = (datetime.now(tz=self.tz) - timedelta(days=1))
+                    start_date = (datetime.now(tz=self.tz) - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=999999)
 
                 if end_date:
                     # handle ene date as either string or datetime object (and localize)
                     end_date = handle_ambiguous_datetime(end_date, self.tz, self.date_format)
                 else:
                     # default to today
-                    end_date = datetime.now(tz=self.tz)
+                    end_date = datetime.now(tz=self.tz).replace(hour=23, minute=59, second=59, microsecond=999999)
 
         # set start and end times to midnight if not given in input string
         if not any([start_date.hour, start_date.minute, start_date.second, start_date.microsecond]):
@@ -228,9 +228,26 @@ class Kronos(object):
         return parsed_date.strftime(out_format)
 
     @staticmethod
-    def from_timestamp(unix_timestamp) -> datetime:
-        """ Convenience pass-thru to datetime.fromtimestamp(...). Returns a datetime object. """
-        return datetime.fromtimestamp(unix_timestamp)
+    def from_timestamp(unix_timestamp: Union[int, float], in_timezone: Union[pytz.BaseTzInfo, str] = None, out_timezone: Union[pytz.BaseTzInfo, str] = None) -> datetime:
+        """ Convenience pass-thru to datetime.fromtimestamp(...). Returns a datetime object.
+
+        :param unix_timestamp: a unix timestamp as int or float
+        :param in_timezone: input timezone. if provided, assigns a timezone to datetime object.
+        :type in_timezone: Union[pytz.BaseTzInfo, str], optional
+        :param out_timezone: output_timezone, defaults to None
+        :type out_timezone: Union[pytz.BaseTzInfo, str], optional
+        :return: a datetime object from the input unix timestamp
+        """
+        dt = datetime.fromtimestamp(unix_timestamp)
+        if in_timezone:
+            dt = dt.replace(tzinfo=make_timezone(in_timezone))
+            if out_timezone:
+                dt = dt.astimezone(tz=make_timezone(out_timezone))
+        
+        if out_timezone and not in_timezone:
+            raise RuntimeError('If you provide an `out_timezone`, you must first provide an `in_timezone` to localize the datetime object.')
+
+        return dt
 
     def day_range(self) -> Generator[Kronos]:
         """ Yield one-day Kronos objects for each date between object's start and end date.

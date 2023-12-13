@@ -55,6 +55,7 @@ def test_last_month_env_variable():
     kronos = Kronos()
     assert kronos._start_date.day == 1
     assert (kronos._end_date + timedelta(days=1)).day == 1
+    os.environ['KRONOS_DATERANGE'] = 'LATEST'
 
 
 def test_mtd_environment_variable():
@@ -63,6 +64,7 @@ def test_mtd_environment_variable():
     kronos = Kronos()
     assert kronos._start_date.day == 1
     assert datetime.now().strftime(kronos.date_format) == kronos.end_date
+    os.environ['KRONOS_DATERANGE'] = 'LATEST'
 
 
 def test_manual_entry_named_ranges():

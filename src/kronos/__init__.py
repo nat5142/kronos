@@ -2,7 +2,7 @@
 
 __author__ = """Nick Tulli"""
 __email__ = "ntulli.dev@gmail.com"
-__version__ = "0.0.13"
+__version__ = "0.0.14"
 
 from .kronos import Kronos, DEFAULT_FORMAT, DEFAULT_TZ, ISO_FMT
 from .utilities import convert_timezone
