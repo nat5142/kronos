@@ -66,11 +66,15 @@ def make_timezone(timezone: Union[pytz.BaseTzInfo, str]) -> pytz.BaseTzInfo:
     """ Handle timezones given both as strings or as pre-made pytz.BaseTzInfo objects.
 
     :param tz: a timezone, represented as a string or as as a pytz.timezone object.
+    :raises ValueError: if `timezone` is passed as a string and the string is not contained in pytz.all_timezones
     """
+
     if isinstance(timezone, pytz.BaseTzInfo):
         # check if user already created the timezone object instead of passing a string, and handle it
         tz = timezone
     else:
+        if timezone not in pytz.all_timezones:
+            raise ValueError('`{}` is not a valid timezone. See pytz.all_timezones for a list of accepted values.'.format(timezone))
         # accept string
         tz = pytz.timezone(timezone)
 

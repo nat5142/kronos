@@ -149,6 +149,19 @@ List of accepted values:
 
 <br>
 
+
+## TODOs:
+
+- [ ] Type hints on all functions
+- [ ] typing.Literal for named dateranges
+- [ ] Confirm that start_date <= end_date
+- [x] Validate timezone strings using pytz.all_timezones
+- [ ] .contains(date) function to determine if date is within range
+- [ ] Implement __iter__ to loop over all dates
+- [ ] Update Kronos.__init__ to accept dates and unix timestamps in addition to datetimes and strings
+
+
+
 ## Credits
 ---
 
